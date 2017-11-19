@@ -28,24 +28,37 @@ def cmd_help (bot, update):
 
 
 def cmd_document (bot, update):
-    """ TODO """
+    """"""
     update.message.reply_text ('Got ' + update.message.document.file_name)
     update.message.reply_text ('MIME ' + update.message.document.mime_type)
-    user = update.message.from_user
-    document =  bot.get_file(update.message.document.file_id)
-    document.download(update.message.document.file_name)
-    logger.info("Document of %s: %s", user.first_name, update.message.document.file_name)
+    user        = update.message.from_user
+    document    =  bot.get_file(update.message.document.file_id)
+    document.download (update.message.document.file_name)
+    logger.info ("Document of %s: %s", user.first_name, update.message.document.file_name)
 
 
 def cmd_audio (bot, update):
     """ TODO """
     update.message.reply_text ('Got ' + update.message.audio.file_id)
     update.message.reply_text ('MIME ' + update.message.audio.mime_type)
-    print (re.findall(r'/(\w+)', update.message.audio.mime_type))
-    user = update.message.from_user
-    document =  bot.get_file(update.message.audio.file_id)
-    document.download('test.mp3')
-    logger.info("Audio of %s: %s", user.first_name, update.message.audio.file_id)
+    ext         = re.findall(r'/(\w+)', update.message.audio.mime_type)[0]
+    filename    = update.message.audio.file_id + '.' + ext
+    user        = update.message.from_user
+    document    =  bot.get_file(update.message.audio.file_id)
+    document.download (filename)
+    logger.info ("Audio of %s: %s", user.first_name, filename)
+
+
+def cmd_video (bot, update):
+    """ TODO """
+    update.message.reply_text ('Got ' + update.message.video.file_id)
+    update.message.reply_text ('MIME ' + update.message.video.mime_type)
+    ext         = re.findall(r'/(\w+)', update.message.video.mime_type)[0]
+    filename    = update.message.video.file_id + '.' + ext
+    user        = update.message.from_user
+    document    =  bot.get_file(update.message.video.file_id)
+    document.download (filename)
+    logger.info ("Video of %s: %s", user.first_name, filename)
 
 
 def cmd_halt (bot, update):
@@ -64,7 +77,7 @@ def cmd_error (bot, update, error):
 def main ():
     """Start the bot."""
     # Create the EventHandler and pass it your bot's token.
-    updater = Updater ("462574820:AAEG-r9mlu7kTyMnYHcKS0rKae7uYgXBN5Q")
+    updater = Updater ("409625517:AAEAtdlA14CyChi33KyLyILEowbij97IP88")
 
     # Get the dispatcher to register handlers
     dp = updater.dispatcher
@@ -76,6 +89,7 @@ def main ():
 
     # TODO TODO TODO Define image filter here TODO TODO TODO
     dp.add_handler (MessageHandler (Filters.audio, cmd_audio))
+    dp.add_handler (MessageHandler (Filters.video, cmd_video))
     dp.add_handler (MessageHandler (Filters.document, cmd_document))
 
     # on unknown command, put some help text
