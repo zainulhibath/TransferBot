@@ -1,11 +1,12 @@
 #!/usr/bin/env python
-# coding: utf-8
-# transfer.sh telegram bot
-# Version:  0.1
-# Author:   Jhonata Poma - jhonata.poma@gmail.com
+# -*- coding: utf-8 -*-
 
 """ Send any telegram-supported media to this bot and it will be uploaded over transfer.sh
+    Usage:
+      $ python transferbot.py
 """
+
+__author__ = "jhonata.poma@gmail.com (Jhonata 'bomba' Poma)"
 
 import logging, re, requests, os
 from telegram.ext   import Updater, CommandHandler, MessageHandler
