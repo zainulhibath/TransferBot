@@ -13,7 +13,7 @@ You will need:
 Then you can install the required modules with:
 
 ```sh
-sudo pip -r install requirements.txt
+sudo pip install -r requirements.txt
 ```
 
 *Config:*
