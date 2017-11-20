@@ -1,7 +1,10 @@
 #!/usr/bin/env python
-# -*- coding: utf-8 -*-
+# coding: utf-8
+# transfer.sh telegram bot
+# Version:  0.1
+# Author:   Jhonata Poma - jhonata.poma@gmail.com
 
-""" This bot downloads attachments then uploads them to transfer.sh
+""" Send any telegram-supported media to this bot and it will be uploaded over transfer.sh
 """
 
 import logging, re, requests, os
