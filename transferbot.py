@@ -162,12 +162,12 @@ def fbk_video (bot, update):
 def fbk_photo (bot, update):
     """ Get chat photo, the biggest from the list
     """
-    #   Check if exceeds the 20mbs limit 
-    if (update.message.photo.file_size > SIZE_LIMIT):
-        update.message.reply_text ("Your file is too big! Size limited to 20mb by Telegram Bot API")
-        logger.warn ("Rejected file, size was %s" %(update.message.photo.file_size))
-        return
     pic_index   = len (update.message.photo) - 1 
+    #   Check if exceeds the 20mbs limit 
+    if (update.message.photo[pic_index].file_size > SIZE_LIMIT):
+        update.message.reply_text ("Your file is too big! Size limited to 20mb by Telegram Bot API")
+        logger.warn ("Rejected file, size was %s" %(update.message.photo[pic_index].file_size))
+        return
     filename    = update.message.photo[pic_index].file_id + '.jpg'
     user        = update.message.from_user
     document    = bot.get_file (update.message.photo[pic_index].file_id)
