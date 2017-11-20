@@ -18,8 +18,8 @@ logger = logging.getLogger (__name__)
 def transfer (filename):
     """Sends filename then deletes it. Returns url"""
     upload_url = "https://transfer.sh/" + filename
-    #r = requests.put(url=upload_url, files={filename: open(filename, "r+")})
     r = requests.put(url=upload_url, data=open(filename, "r"))
+    logger.info ("Transfered %s", filename)
     return (r.text.strip())
 
 #   HANDLERS
@@ -45,8 +45,6 @@ def cmd_error (bot, update, error):
 #   ATTACHMENT's FALLBACKS
 def fbk_document (bot, update):
     """Get document, then transfer() it"""
-    update.message.reply_text ('Got ' + update.message.document.file_name)
-    update.message.reply_text ('MIME ' + update.message.document.mime_type)
     user        = update.message.from_user
     document    =  bot.get_file(update.message.document.file_id)
     document.download (update.message.document.file_name)
@@ -55,8 +53,6 @@ def fbk_document (bot, update):
 
 def fbk_audio (bot, update):
     """Get audio, then transfer() it"""
-    update.message.reply_text ('Got ' + update.message.audio.file_id)
-    update.message.reply_text ('MIME ' + update.message.audio.mime_type)
     ext         = re.findall(r'/(\w+)', update.message.audio.mime_type)[0]
     filename    = update.message.audio.file_id + '.' + ext
     user        = update.message.from_user
@@ -67,14 +63,21 @@ def fbk_audio (bot, update):
 
 def fbk_video (bot, update):
     """Get video, then transfer() it"""
-    update.message.reply_text ('Got ' + update.message.video.file_id)
-    update.message.reply_text ('MIME ' + update.message.video.mime_type)
     ext         = re.findall(r'/(\w+)', update.message.video.mime_type)[0]
     filename    = update.message.video.file_id + '.' + ext
     user        = update.message.from_user
     document    =  bot.get_file(update.message.video.file_id)
     document.download (filename)
     logger.info ("Got video from %s: %s", user.first_name, filename)
+    update.message.reply_text (transfer (filename))
+
+def fbk_photo (bot, update):
+    """Get chat photo, grab the biggest (3) from the list"""
+    filename    = update.message.photo[3].file_id + '.jpg'
+    user        = update.message.from_user
+    document    =  bot.get_file(update.message.photo[3].file_id)
+    document.download (filename)
+    logger.info ("Got photo from %s: %s", user.first_name, filename)
     update.message.reply_text (transfer (filename))
 
 #   MAIN
@@ -95,6 +98,7 @@ def main ():
     dp.add_handler (MessageHandler (Filters.command, cmd_unknown))
 
     # Add stuff to handle
+    dp.add_handler (MessageHandler (Filters.photo,      fbk_photo))
     dp.add_handler (MessageHandler (Filters.audio,      fbk_audio))
     dp.add_handler (MessageHandler (Filters.video,      fbk_video))
     dp.add_handler (MessageHandler (Filters.document,   fbk_document))
