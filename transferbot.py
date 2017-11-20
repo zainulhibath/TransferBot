@@ -81,7 +81,7 @@ def fbk_document (bot, update):
         logger.error ("Something went wrong, backtrace: \n%s" %(e))
         return
     logger.info ("Got document from %s: %s", user.first_name, update.message.document.file_name)
-    update.message.reply_text (transfer (update.message.document.file_name))
+    update.message.reply_text ('Your transfer.sh link: ' + transfer (update.message.document.file_name))
 
 def fbk_audio (bot, update):
     """ Get audio, then transfer it.
@@ -97,7 +97,7 @@ def fbk_audio (bot, update):
         logger.error ("Something went wrong, backtrace: \n%s" %(e))
         return
     logger.info ("Got audio from %s: %s", user.first_name, filename)
-    update.message.reply_text (transfer (filename))
+    update.message.reply_text ('Your transfer.sh link: ' + transfer (filename))
 
 def fbk_voice (bot, update):
     """ Get audio, then transfer it.
@@ -113,7 +113,7 @@ def fbk_voice (bot, update):
         logger.error ("Something went wrong, backtrace: \n%s" %(e))
         return
     logger.info ("Got voice from %s: %s", user.first_name, filename)
-    update.message.reply_text (transfer (filename))
+    update.message.reply_text ('Your transfer.sh link: ' + transfer (filename))
 
 def fbk_video (bot, update):
     """ Get video, then transfer it.
@@ -129,7 +129,7 @@ def fbk_video (bot, update):
         logger.error ("Something went wrong, backtrace: \n%s" %(e))
         return
     logger.info ("Got video from %s: %s", user.first_name, filename)
-    update.message.reply_text (transfer (filename))
+    update.message.reply_text ('Your transfer.sh link: ' + transfer (filename))
 
 def fbk_photo (bot, update):
     """ Get chat photo, the biggest from the list
@@ -144,7 +144,7 @@ def fbk_photo (bot, update):
         logger.error ("Something went wrong, backtrace: \n%s" %(e))
         return
     logger.info ("Got photo from %s: %s", user.first_name, filename)
-    update.message.reply_text (transfer (filename))
+    update.message.reply_text ('Your transfer.sh link: ' + transfer (filename))
 
 #   MAIN
 def main ():
