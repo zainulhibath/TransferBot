@@ -13,12 +13,17 @@ from telegram.ext   import Filters, CallbackQueryHandler
 
 #   GLOBALZ
 VERSION     = '0.1'
-TOKEN       = open ('conf/token.conf', 'r').read ().replace ("\n", "")
 FILES_POOL  = '/tmp/'
 
 #   LOGGER
 logging.basicConfig (format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', level=logging.INFO)
 logger = logging.getLogger (__name__)
+
+try:
+    TOKEN   = open ('conf/token.conf', 'r').read ().replace ("\n", "")
+except Exception, e:
+    logger.error ("Could not find 'conf/token.conf'.")
+    exit (1) 
 
 def remove (filename):
     """ Removes the file after transfer.
