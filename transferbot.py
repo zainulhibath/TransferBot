@@ -14,6 +14,7 @@ from telegram.ext   import Filters, CallbackQueryHandler
 #   GLOBALZ
 VERSION     = '0.1'
 FILES_POOL  = '/tmp/'
+SIZE_LIMIT  = 20971520
 
 #   LOGGER
 logging.basicConfig (format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', level=logging.INFO)
@@ -57,6 +58,8 @@ def cmd_start (bot, update):
     """ Send a message when the command /start is issued.
     """
     update.message.reply_text ('Transferbot ' + VERSION)
+    update.message.reply_text ('Just send a picture, video, song or any other of telegram-supported ' \
+                               'media to upload it over transfer.sh')
 
 def cmd_help (bot, update):
     """ Send a message when the command /help is issued.
@@ -67,7 +70,7 @@ def cmd_help (bot, update):
 def cmd_unknown (bot, update):
     """ Send a message if the command is not defined.
     """
-    update.message.reply_text ('Command not found. Type /help for... help.')
+    update.message.reply_text ('Command not found. Type /help.')
 
 def cmd_error (bot, update, error):
     """ Log Errors caused by updates.
@@ -78,6 +81,11 @@ def cmd_error (bot, update, error):
 def fbk_document (bot, update):
     """ Get document, then transfer it.
     """
+    #   Check if exceeds the 20mbs limit 
+    if (update.message.document.file_size > SIZE_LIMIT):
+        update.message.reply_text ("Your file is too big! Size limited to 20mb by Telegram Bot API")
+        logger.warn ("Rejected file, size was %s" %(update.message.document.file_size))
+        return
     user        = update.message.from_user
     document    = bot.get_file (update.message.document.file_id)
     try:
@@ -91,6 +99,11 @@ def fbk_document (bot, update):
 def fbk_audio (bot, update):
     """ Get audio, then transfer it.
     """
+    #   Check if exceeds the 20mbs limit 
+    if (update.message.audio.file_size > SIZE_LIMIT):
+        update.message.reply_text ("Your file is too big! Size limited to 20mb by Telegram Bot API")
+        logger.warn ("Rejected file, size was %s" %(update.message.audio.file_size))
+        return
     FIRST_EMT   = 0
     ext         = re.findall (r'/(\w+)', update.message.audio.mime_type)[FIRST_EMT]
     filename    = update.message.audio.file_id + '.' + ext
@@ -107,6 +120,11 @@ def fbk_audio (bot, update):
 def fbk_voice (bot, update):
     """ Get audio, then transfer it.
     """
+    #   Check if exceeds the 20mbs limit 
+    if (update.message.voice.file_size > SIZE_LIMIT):
+        update.message.reply_text ("Your file is too big! Size limited to 20mb by Telegram Bot API")
+        logger.warn ("Rejected file, size was %s" %(update.message.voice.file_size))
+        return
     FIRST_EMT   = 0
     ext         = re.findall (r'/(\w+)', update.message.voice.mime_type)[FIRST_EMT]
     filename    = update.message.voice.file_id + '.' + ext
@@ -123,6 +141,11 @@ def fbk_voice (bot, update):
 def fbk_video (bot, update):
     """ Get video, then transfer it.
     """
+    #   Check if exceeds the 20mbs limit 
+    if (update.message.video.file_size > SIZE_LIMIT):
+        update.message.reply_text ("Your file is too big! Size limited to 20mb by Telegram Bot API")
+        logger.warn ("Rejected file, size was %s" %(update.message.video.file_size))
+        return
     FIRST_EMT   = 0
     ext         = re.findall (r'/(\w+)', update.message.video.mime_type)[FIRST_EMT]
     filename    = update.message.video.file_id + '.' + ext
@@ -139,6 +162,11 @@ def fbk_video (bot, update):
 def fbk_photo (bot, update):
     """ Get chat photo, the biggest from the list
     """
+    #   Check if exceeds the 20mbs limit 
+    if (update.message.photo.file_size > SIZE_LIMIT):
+        update.message.reply_text ("Your file is too big! Size limited to 20mb by Telegram Bot API")
+        logger.warn ("Rejected file, size was %s" %(update.message.photo.file_size))
+        return
     pic_index   = len (update.message.photo) - 1 
     filename    = update.message.photo[pic_index].file_id + '.jpg'
     user        = update.message.from_user
