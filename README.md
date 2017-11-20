@@ -1,3 +1,5 @@
+![alt_text][logo]
+
 ## Transferbot
 
 #### What is Transferbot?
@@ -19,9 +21,4 @@ sudo pip install -r requirements.txt
 *Config:*
 - Edit ***conf/token.conf.dist*** using your token received from BotFather and save it to ***conf/token.conf***
 
-
-
-
-
-
-
+[logo]: img/logo.jpg
