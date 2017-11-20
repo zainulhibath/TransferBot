@@ -6,9 +6,13 @@
 
 from telegram.ext   import Updater, CommandHandler, MessageHandler
 from telegram.ext   import Filters, CallbackQueryHandler
-import logging
-import re
-import requests
+import logging, re, requests
+
+# Read token
+TOKEN = open('conf/token.conf', 'r').read().replace("\n", "")
+
+# Pool folder
+FILES_POOL = '/tmp/'
 
 #   LOGGER
 logging.basicConfig (format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
@@ -18,9 +22,9 @@ logger = logging.getLogger (__name__)
 def transfer (filename):
     """Sends filename then deletes it. Returns url"""
     upload_url = "https://transfer.sh/" + filename
-    r = requests.put(url=upload_url, data=open(filename, "r"))
+    r = requests.put (url=upload_url, data=open (FILES_POOL + filename, "r"))
     logger.info ("Transfered %s", filename)
-    return (r.text.strip())
+    return (r.text.strip ())
 
 #   HANDLERS
 def cmd_start (bot, update):
@@ -46,37 +50,41 @@ def cmd_error (bot, update, error):
 def fbk_document (bot, update):
     """Get document, then transfer() it"""
     user        = update.message.from_user
-    document    =  bot.get_file(update.message.document.file_id)
-    document.download (update.message.document.file_name)
+    document    =  bot.get_file (update.message.document.file_id)
+    #document.download ('/tmp/', update.message.document.file_name)
+    document.download (FILES_POOL + update.message.document.file_name)
     logger.info ("Got document from %s: %s", user.first_name, update.message.document.file_name)
     update.message.reply_text (transfer (update.message.document.file_name))
 
 def fbk_audio (bot, update):
     """Get audio, then transfer() it"""
-    ext         = re.findall(r'/(\w+)', update.message.audio.mime_type)[0]
+    FIRST_EMT   = 0
+    ext         = re.findall (r'/(\w+)', update.message.audio.mime_type)[FIRST_EMT]
     filename    = update.message.audio.file_id + '.' + ext
     user        = update.message.from_user
-    document    =  bot.get_file(update.message.audio.file_id)
-    document.download (filename)
+    document    =  bot.get_file (update.message.audio.file_id)
+    document.download (FILES_POOL + filename)
     logger.info ("Got audio from %s: %s", user.first_name, filename)
     update.message.reply_text (transfer (filename))
 
 def fbk_video (bot, update):
     """Get video, then transfer() it"""
-    ext         = re.findall(r'/(\w+)', update.message.video.mime_type)[0]
+    FIRST_EMT   = 0
+    ext         = re.findall (r'/(\w+)', update.message.video.mime_type)[FIRST_EMT]
     filename    = update.message.video.file_id + '.' + ext
     user        = update.message.from_user
-    document    =  bot.get_file(update.message.video.file_id)
-    document.download (filename)
+    document    =  bot.get_file (update.message.video.file_id)
+    document.download (FILES_POOL + filename)
     logger.info ("Got video from %s: %s", user.first_name, filename)
     update.message.reply_text (transfer (filename))
 
 def fbk_photo (bot, update):
     """Get chat photo, grab the biggest (3) from the list"""
-    filename    = update.message.photo[3].file_id + '.jpg'
+    BIGGEST_PIC = 3
+    filename    = update.message.photo[BIGGEST_PIC].file_id + '.jpg'
     user        = update.message.from_user
-    document    =  bot.get_file(update.message.photo[3].file_id)
-    document.download (filename)
+    document    =  bot.get_file (update.message.photo[BIGGEST_PIC].file_id)
+    document.download (FILES_POOL + filename)
     logger.info ("Got photo from %s: %s", user.first_name, filename)
     update.message.reply_text (transfer (filename))
 
@@ -84,7 +92,7 @@ def fbk_photo (bot, update):
 def main ():
     """Start the bot."""
     # Create the EventHandler and pass it your bot's token.
-    updater = Updater ("409625517:AAEAtdlA14CyChi33KyLyILEowbij97IP88")
+    updater = Updater (TOKEN)
 
     # Get the dispatcher to register handlers
     dp = updater.dispatcher
