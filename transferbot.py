@@ -134,10 +134,10 @@ def fbk_video (bot, update):
 def fbk_photo (bot, update):
     """ Get chat photo, the biggest from the list
     """
-    BIGGEST_PIC = 3
-    filename    = update.message.photo[BIGGEST_PIC].file_id + '.jpg'
+    pic_index   = len (update.message.photo) - 1 
+    filename    = update.message.photo[pic_index].file_id + '.jpg'
     user        = update.message.from_user
-    document    = bot.get_file (update.message.photo[BIGGEST_PIC].file_id)
+    document    = bot.get_file (update.message.photo[pic_index].file_id)
     try:
         document.download (FILES_POOL + filename)
     except Exception, e:
