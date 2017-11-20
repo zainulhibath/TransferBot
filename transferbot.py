@@ -4,29 +4,45 @@
 """ This bot downloads attachments then uploads them to transfer.sh
 """
 
+import logging, re, requests, os
 from telegram.ext   import Updater, CommandHandler, MessageHandler
 from telegram.ext   import Filters, CallbackQueryHandler
-import logging, re, requests
 
-# Read token
-TOKEN = open('conf/token.conf', 'r').read().replace("\n", "")
-
-# Pool folder
-FILES_POOL = '/tmp/'
-
+#   GLOBALZ
+TOKEN       = open('conf/token.conf', 'r').read().replace("\n", "")
+FILES_POOL  = '/tmp/'
 
 #   LOGGER
-logging.basicConfig (format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
-                    level=logging.INFO)
+logging.basicConfig (format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', level=logging.INFO)
 logger = logging.getLogger (__name__)
+
+def remove (filename):
+    """ Removes the file after transfer.
+    """
+    print ('test')
+    try:
+        os.remove(FILES_POOL + filename)
+    except Exception, e:
+        logger.error ("Something went wrong, backtrace: \n%s" %(e))
+        return
+    logger.info ("Removed %s", filename)
 
 def transfer (filename):
     """ Sends filename then deletes it. Returns transfer.sh file's url.
     """
     upload_url = "https://transfer.sh/" + filename
-    r = requests.put (url=upload_url, data=open (FILES_POOL + filename, "r"))
+    try:
+        r = requests.put (url=upload_url, data=open (FILES_POOL + filename, "r"))
+    except Exception, e:
+        logger.error ("Something went wrong, backtrace: \n%s" %(e))
+        return
     logger.info ("Transfered %s", filename)
-    return (r.text.strip ())
+    remove (filename)
+    try:
+        return (r.text.strip ())
+    except Exception, e:
+        logger.error ("Something went wrong, backtrace: \n%s" %(e))
+        return
 
 #   HANDLERS
 def cmd_start (bot, update):
@@ -56,7 +72,11 @@ def fbk_document (bot, update):
     """
     user        = update.message.from_user
     document    = bot.get_file (update.message.document.file_id)
-    document.download (FILES_POOL + update.message.document.file_name)
+    try:
+        document.download (FILES_POOL + update.message.document.file_name)
+    except Exception, e:
+        logger.error ("Something went wrong, backtrace: \n%s" %(e))
+        return
     logger.info ("Got document from %s: %s", user.first_name, update.message.document.file_name)
     update.message.reply_text (transfer (update.message.document.file_name))
 
@@ -68,7 +88,11 @@ def fbk_audio (bot, update):
     filename    = update.message.audio.file_id + '.' + ext
     user        = update.message.from_user
     document    = bot.get_file (update.message.audio.file_id)
-    document.download (FILES_POOL + filename)
+    try:
+        document.download (FILES_POOL + filename)
+    except Exception, e:
+        logger.error ("Something went wrong, backtrace: \n%s" %(e))
+        return
     logger.info ("Got audio from %s: %s", user.first_name, filename)
     update.message.reply_text (transfer (filename))
 
@@ -80,7 +104,11 @@ def fbk_video (bot, update):
     filename    = update.message.video.file_id + '.' + ext
     user        = update.message.from_user
     document    = bot.get_file (update.message.video.file_id)
-    document.download (FILES_POOL + filename)
+    try:
+        document.download (FILES_POOL + filename)
+    except Exception, e:
+        logger.error ("Something went wrong, backtrace: \n%s" %(e))
+        return
     logger.info ("Got video from %s: %s", user.first_name, filename)
     update.message.reply_text (transfer (filename))
 
@@ -91,7 +119,11 @@ def fbk_photo (bot, update):
     filename    = update.message.photo[BIGGEST_PIC].file_id + '.jpg'
     user        = update.message.from_user
     document    = bot.get_file (update.message.photo[BIGGEST_PIC].file_id)
-    document.download (FILES_POOL + filename)
+    try:
+        document.download (FILES_POOL + filename)
+    except Exception, e:
+        logger.error ("Something went wrong, backtrace: \n%s" %(e))
+        return
     logger.info ("Got photo from %s: %s", user.first_name, filename)
     update.message.reply_text (transfer (filename))
 
@@ -99,39 +131,34 @@ def fbk_photo (bot, update):
 def main ():
     """ Start the bot.
     """
-    # Create the EventHandler and pass it your bot's token.
+    #   Create the EventHandler and pass it your bot's token.
     updater = Updater (TOKEN)
 
-    # Get the dispatcher to register handlers
+    #   Get the dispatcher to register handlers
     dp = updater.dispatcher
 
-    # on different commands - answer in Telegram
+    #   on different commands - answer in Telegram
     dp.add_handler (CommandHandler ("start",        cmd_start))
     dp.add_handler (CommandHandler ("help",         cmd_help))
 
-    # on unknown command, put some help text
+    #   on unknown command, put some help text
     dp.add_handler (MessageHandler (Filters.command, cmd_unknown))
 
-    # Add stuff to handle
+    #   Add stuff to handle
     dp.add_handler (MessageHandler (Filters.photo,      fbk_photo))
     dp.add_handler (MessageHandler (Filters.audio,      fbk_audio))
     dp.add_handler (MessageHandler (Filters.video,      fbk_video))
     dp.add_handler (MessageHandler (Filters.document,   fbk_document))
 
-    # log all errors
+    #   log all errors
     dp.add_error_handler (cmd_error)
 
-    # Start the Bot
+    #   Start the Bot
     updater.start_polling ()
     logger.info ('Kicking')
 
-    # Run the bot until you press Ctrl-C or the process receives SIGINT,
-    # SIGTERM or SIGABRT. This should be used most of the time, since
-    # start_polling () is non-blocking and will stop the bot gracefully.
+    #   Loop until SIGNALS
     updater.idle ()
-
 
 if __name__ == '__main__':
     main ()
-
-
