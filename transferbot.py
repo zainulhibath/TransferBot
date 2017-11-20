@@ -8,11 +8,19 @@ from telegram.ext   import Updater, CommandHandler, MessageHandler
 from telegram.ext   import Filters, CallbackQueryHandler
 import logging
 import re
+import requests
 
 #   LOGGER
 logging.basicConfig (format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
                     level=logging.INFO)
 logger = logging.getLogger (__name__)
+
+def transfer (filename):
+    """Sends filename then deletes it. Returns url"""
+    upload_url = "https://transfer.sh/" + filename
+    #r = requests.put(url=upload_url, files={filename: open(filename, "r+")})
+    r = requests.put(url=upload_url, data=open(filename, "r"))
+    return (r.text.strip())
 
 #   HANDLERS
 def cmd_start (bot, update):
@@ -43,6 +51,7 @@ def fbk_document (bot, update):
     document    =  bot.get_file(update.message.document.file_id)
     document.download (update.message.document.file_name)
     logger.info ("Got document from %s: %s", user.first_name, update.message.document.file_name)
+    update.message.reply_text (transfer (update.message.document.file_name))
 
 def fbk_audio (bot, update):
     """Get audio, then transfer() it"""
@@ -54,6 +63,7 @@ def fbk_audio (bot, update):
     document    =  bot.get_file(update.message.audio.file_id)
     document.download (filename)
     logger.info ("Got audio from %s: %s", user.first_name, filename)
+    update.message.reply_text (transfer (filename))
 
 def fbk_video (bot, update):
     """Get video, then transfer() it"""
@@ -65,6 +75,7 @@ def fbk_video (bot, update):
     document    =  bot.get_file(update.message.video.file_id)
     document.download (filename)
     logger.info ("Got video from %s: %s", user.first_name, filename)
+    update.message.reply_text (transfer (filename))
 
 #   MAIN
 def main ():
