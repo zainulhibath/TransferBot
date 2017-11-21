@@ -1,8 +1,5 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-
-# TODO: check_size(file_size) function needed!
-
 """ Send any telegram-supported media to this bot and it will be uploaded over transfer.sh
     Usage:
       $ python transferbot.py
@@ -14,12 +11,9 @@ import logging, re, requests, os
 from telegram.ext   import Updater, CommandHandler, MessageHandler
 from telegram.ext   import Filters, CallbackQueryHandler
 
-#   GLOBALZ
 VERSION     = '0.1'
 FILES_POOL  = '/tmp/'
-SIZE_LIMIT  = 20971520
 
-#   LOGGER
 logging.basicConfig (format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', level=logging.INFO)
 logger = logging.getLogger (__name__)
 
@@ -56,6 +50,16 @@ def transfer (filename):
         logger.error ("Something went wrong, backtrace: \n%s" %(e))
         return
 
+def checkSize (filesize, update):
+    """ Checks if filesize fits inside 20mb
+    """
+    SIZE_LIMIT = 20971520
+    if (filesize > SIZE_LIMIT):
+        update.message.reply_text ("Your file is too big! Size limited to 20mb by Telegram Bot API")
+        logger.warn ("Rejected file, size was %s" %(filesize))
+        return False
+    return True
+
 #   HANDLERS
 def cmd_start (bot, update):
     """ Send a message when the command /start is issued.
@@ -85,102 +89,87 @@ def fbk_document (bot, update):
     """ Get document, then transfer it.
     """
     #   Check if exceeds the 20mbs limit 
-    if (update.message.document.file_size > SIZE_LIMIT):
-        update.message.reply_text ("Your file is too big! Size limited to 20mb by Telegram Bot API")
-        logger.warn ("Rejected file, size was %s" %(update.message.document.file_size))
-        return
-    user        = update.message.from_user
-    document    = bot.get_file (update.message.document.file_id)
-    try:
-        document.download (FILES_POOL + update.message.document.file_name)
-    except Exception, e:
-        logger.error ("Something went wrong, backtrace: \n%s" %(e))
-        return
-    logger.info ("Got document from %s: %s", user.first_name, update.message.document.file_name)
-    update.message.reply_text ('Your transfer.sh link: ' + transfer (update.message.document.file_name))
+    if (checkSize (update.message.document.file_size, update)):
+        user        = update.message.from_user
+        document    = bot.get_file (update.message.document.file_id)
+        try:
+            document.download (FILES_POOL + update.message.document.file_name)
+        except Exception, e:
+            logger.error ("Something went wrong, backtrace: \n%s" %(e))
+            return
+        logger.info ("Got document from %s: %s", user.first_name, update.message.document.file_name)
+        update.message.reply_text ('Your transfer.sh link: ' + transfer (update.message.document.file_name))
 
 def fbk_audio (bot, update):
     """ Get audio, then transfer it.
     """
     #   Check if exceeds the 20mbs limit 
-    if (update.message.audio.file_size > SIZE_LIMIT):
-        update.message.reply_text ("Your file is too big! Size limited to 20mb by Telegram Bot API")
-        logger.warn ("Rejected file, size was %s" %(update.message.audio.file_size))
-        return
-    FIRST_EMT   = 0
-    ext         = re.findall (r'/(\w+)', update.message.audio.mime_type)[FIRST_EMT]
-    filename    = update.message.audio.file_id + '.' + ext
-    user        = update.message.from_user
-    document    = bot.get_file (update.message.audio.file_id)
-    try:
-        document.download (FILES_POOL + filename)
-    except Exception, e:
-        logger.error ("Something went wrong, backtrace: \n%s" %(e))
-        return
-    logger.info ("Got audio from %s: %s", user.first_name, filename)
-    update.message.reply_text ('Your transfer.sh link: ' + transfer (filename))
+    if (checkSize (update.message.audio.file_size, update)):
+        FIRST_EMT   = 0
+        ext         = re.findall (r'/(\w+)', update.message.audio.mime_type)[FIRST_EMT]
+        filename    = update.message.audio.file_id + '.' + ext
+        user        = update.message.from_user
+        document    = bot.get_file (update.message.audio.file_id)
+        try:
+            document.download (FILES_POOL + filename)
+        except Exception, e:
+            logger.error ("Something went wrong, backtrace: \n%s" %(e))
+            return
+        logger.info ("Got audio from %s: %s", user.first_name, filename)
+        update.message.reply_text ('Your transfer.sh link: ' + transfer (filename))
 
 def fbk_voice (bot, update):
     """ Get audio, then transfer it.
     """
     #   Check if exceeds the 20mbs limit 
-    if (update.message.voice.file_size > SIZE_LIMIT):
-        update.message.reply_text ("Your file is too big! Size limited to 20mb by Telegram Bot API")
-        logger.warn ("Rejected file, size was %s" %(update.message.voice.file_size))
-        return
-    FIRST_EMT   = 0
-    ext         = re.findall (r'/(\w+)', update.message.voice.mime_type)[FIRST_EMT]
-    filename    = update.message.voice.file_id + '.' + ext
-    user        = update.message.from_user
-    document    = bot.get_file (update.message.voice.file_id)
-    try:
-        document.download (FILES_POOL + filename)
-    except Exception, e:
-        logger.error ("Something went wrong, backtrace: \n%s" %(e))
-        return
-    logger.info ("Got voice from %s: %s", user.first_name, filename)
-    update.message.reply_text ('Your transfer.sh link: ' + transfer (filename))
+    if (checkSize (update.message.voice.file_size, update)):
+        FIRST_EMT   = 0
+        ext         = re.findall (r'/(\w+)', update.message.voice.mime_type)[FIRST_EMT]
+        filename    = update.message.voice.file_id + '.' + ext
+        user        = update.message.from_user
+        document    = bot.get_file (update.message.voice.file_id)
+        try:
+            document.download (FILES_POOL + filename)
+        except Exception, e:
+            logger.error ("Something went wrong, backtrace: \n%s" %(e))
+            return
+        logger.info ("Got voice from %s: %s", user.first_name, filename)
+        update.message.reply_text ('Your transfer.sh link: ' + transfer (filename))
 
 def fbk_video (bot, update):
     """ Get video, then transfer it.
     """
     #   Check if exceeds the 20mbs limit 
-    if (update.message.video.file_size > SIZE_LIMIT):
-        update.message.reply_text ("Your file is too big! Size limited to 20mb by Telegram Bot API")
-        logger.warn ("Rejected file, size was %s" %(update.message.video.file_size))
-        return
-    FIRST_EMT   = 0
-    ext         = re.findall (r'/(\w+)', update.message.video.mime_type)[FIRST_EMT]
-    filename    = update.message.video.file_id + '.' + ext
-    user        = update.message.from_user
-    document    = bot.get_file (update.message.video.file_id)
-    try:
-        document.download (FILES_POOL + filename)
-    except Exception, e:
-        logger.error ("Something went wrong, backtrace: \n%s" %(e))
-        return
-    logger.info ("Got video from %s: %s", user.first_name, filename)
-    update.message.reply_text ('Your transfer.sh link: ' + transfer (filename))
+    if (checkSize (update.message.video.file_size, update)):
+        FIRST_EMT   = 0
+        ext         = re.findall (r'/(\w+)', update.message.video.mime_type)[FIRST_EMT]
+        filename    = update.message.video.file_id + '.' + ext
+        user        = update.message.from_user
+        document    = bot.get_file (update.message.video.file_id)
+        try:
+            document.download (FILES_POOL + filename)
+        except Exception, e:
+            logger.error ("Something went wrong, backtrace: \n%s" %(e))
+            return
+        logger.info ("Got video from %s: %s", user.first_name, filename)
+        update.message.reply_text ('Your transfer.sh link: ' + transfer (filename))
 
 def fbk_photo (bot, update):
     """ Get chat photo, the biggest from the list
     """
     pic_index   = len (update.message.photo) - 1 
     #   Check if exceeds the 20mbs limit 
-    if (update.message.photo[pic_index].file_size > SIZE_LIMIT):
-        update.message.reply_text ("Your file is too big! Size limited to 20mb by Telegram Bot API")
-        logger.warn ("Rejected file, size was %s" %(update.message.photo[pic_index].file_size))
-        return
-    filename    = update.message.photo[pic_index].file_id + '.jpg'
-    user        = update.message.from_user
-    document    = bot.get_file (update.message.photo[pic_index].file_id)
-    try:
-        document.download (FILES_POOL + filename)
-    except Exception, e:
-        logger.error ("Something went wrong, backtrace: \n%s" %(e))
-        return
-    logger.info ("Got photo from %s: %s", user.first_name, filename)
-    update.message.reply_text ('Your transfer.sh link: ' + transfer (filename))
+    if (checkSize (update.message.photo[pic_index].file_size, update)):
+        filename    = update.message.photo[pic_index].file_id + '.jpg'
+        user        = update.message.from_user
+        document    = bot.get_file (update.message.photo[pic_index].file_id)
+        try:
+            document.download (FILES_POOL + filename)
+        except Exception, e:
+            logger.error ("Something went wrong, backtrace: \n%s" %(e))
+            return
+        logger.info ("Got photo from %s: %s", user.first_name, filename)
+        update.message.reply_text ('Your transfer.sh link: ' + transfer (filename))
 
 #   MAIN
 def main ():
