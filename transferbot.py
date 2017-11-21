@@ -1,6 +1,8 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
+# TODO: check_size(file_size) function needed!
+
 """ Send any telegram-supported media to this bot and it will be uploaded over transfer.sh
     Usage:
       $ python transferbot.py
