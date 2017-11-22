@@ -11,7 +11,7 @@ import logging, re, requests, os
 from telegram.ext   import Updater, CommandHandler, MessageHandler
 from telegram.ext   import Filters, CallbackQueryHandler
 
-VERSION     = '0.1'
+VERSION     = '0.2'
 FILES_POOL  = '/tmp/'
 
 logging.basicConfig (format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', level=logging.INFO)
@@ -21,13 +21,13 @@ try:
     TOKEN   = open ('conf/token.conf', 'r').read ().replace ("\n", "")
 except Exception, e:
     logger.error ("Could not find 'conf/token.conf'.")
-    exit (1) 
+    exit (1)
 
 def remove (filename):
     """ Removes the file after transfer.
     """
     try:
-        os.remove(FILES_POOL + filename)
+        os.remove (FILES_POOL + filename)
     except Exception, e:
         logger.error ("Something went wrong, backtrace: \n%s" %(e))
         return
@@ -38,20 +38,32 @@ def transfer (filename):
     """
     upload_url = "https://transfer.sh/" + filename
     try:
+        #   Upload file
         req = requests.put (url=upload_url, data=open (FILES_POOL + filename, "r"))
     except Exception, e:
         logger.error ("Something went wrong, backtrace: \n%s" %(e))
-        return
-    logger.info ("Transfered %s", filename)
+        return (e)
+    logger.info ("Transferred %s", filename)
     remove (filename)
     try:
+        #   Request shall return 'https://transfer.sh/AAAA/filename'
         return (req.text.strip ())
     except Exception, e:
         logger.error ("Something went wrong, backtrace: \n%s" %(e))
-        return
+        return (e)
+
+def download (document, filename):
+    """ Downloads attachment
+    """
+    try:
+        document.download (FILES_POOL + filename)
+    except Exception, e:
+        logger.error ("Something went wrong, backtrace: \n%s" %(e))
+        return False
+    return True
 
 def checkSize (filesize, update):
-    """ Checks if filesize fits inside 20mb
+    """ Checks if filesize fits inside 20mb. True if it does
     """
     SIZE_LIMIT = 20971520
     if (filesize > SIZE_LIMIT):
@@ -84,92 +96,69 @@ def cmd_error (bot, update, error):
     """
     logger.warning ('Update "%s" caused error "%s"', update, error)
 
-#   ATTACHMENT's FALLBACKS
+#   ATTACHMENTS MGMT
 def fbk_document (bot, update):
     """ Get document, then transfer it.
     """
-    #   Check if exceeds the 20mbs limit 
     if (checkSize (update.message.document.file_size, update)):
         user        = update.message.from_user
         document    = bot.get_file (update.message.document.file_id)
-        try:
-            document.download (FILES_POOL + update.message.document.file_name)
-        except Exception, e:
-            logger.error ("Something went wrong, backtrace: \n%s" %(e))
-            return
-        logger.info ("Got document from %s: %s", user.first_name, update.message.document.file_name)
-        update.message.reply_text ('Your transfer.sh link: ' + transfer (update.message.document.file_name))
+        if (download (document, update.message.document.file_name)):
+            logger.info ("Got document from %s: %s", user.first_name, update.message.document.file_name)
+            update.message.reply_text ('Your transfer.sh link: ' + transfer (update.message.document.file_name))
 
 def fbk_audio (bot, update):
     """ Get audio, then transfer it.
     """
-    #   Check if exceeds the 20mbs limit 
     if (checkSize (update.message.audio.file_size, update)):
         FIRST_EMT   = 0
         ext         = re.findall (r'/(\w+)', update.message.audio.mime_type)[FIRST_EMT]
         filename    = update.message.audio.file_id + '.' + ext
         user        = update.message.from_user
         document    = bot.get_file (update.message.audio.file_id)
-        try:
-            document.download (FILES_POOL + filename)
-        except Exception, e:
-            logger.error ("Something went wrong, backtrace: \n%s" %(e))
-            return
-        logger.info ("Got audio from %s: %s", user.first_name, filename)
-        update.message.reply_text ('Your transfer.sh link: ' + transfer (filename))
+        if (download (document, filename)):
+            logger.info ("Got audio from %s: %s", user.first_name, filename)
+            update.message.reply_text ('Your transfer.sh link: ' + transfer (filename))
 
 def fbk_voice (bot, update):
     """ Get audio, then transfer it.
     """
-    #   Check if exceeds the 20mbs limit 
     if (checkSize (update.message.voice.file_size, update)):
         FIRST_EMT   = 0
         ext         = re.findall (r'/(\w+)', update.message.voice.mime_type)[FIRST_EMT]
         filename    = update.message.voice.file_id + '.' + ext
         user        = update.message.from_user
         document    = bot.get_file (update.message.voice.file_id)
-        try:
-            document.download (FILES_POOL + filename)
-        except Exception, e:
-            logger.error ("Something went wrong, backtrace: \n%s" %(e))
-            return
-        logger.info ("Got voice from %s: %s", user.first_name, filename)
-        update.message.reply_text ('Your transfer.sh link: ' + transfer (filename))
+        if (download (document, filename)):
+            logger.info ("Got voice from %s: %s", user.first_name, filename)
+            update.message.reply_text ('Your transfer.sh link: ' + transfer (filename))
 
 def fbk_video (bot, update):
     """ Get video, then transfer it.
     """
-    #   Check if exceeds the 20mbs limit 
     if (checkSize (update.message.video.file_size, update)):
         FIRST_EMT   = 0
         ext         = re.findall (r'/(\w+)', update.message.video.mime_type)[FIRST_EMT]
         filename    = update.message.video.file_id + '.' + ext
         user        = update.message.from_user
         document    = bot.get_file (update.message.video.file_id)
-        try:
-            document.download (FILES_POOL + filename)
-        except Exception, e:
-            logger.error ("Something went wrong, backtrace: \n%s" %(e))
-            return
-        logger.info ("Got video from %s: %s", user.first_name, filename)
-        update.message.reply_text ('Your transfer.sh link: ' + transfer (filename))
+        if (download (document, filename)):
+            logger.info ("Got video from %s: %s", user.first_name, filename)
+            update.message.reply_text ('Your transfer.sh link: ' + transfer (filename))
 
 def fbk_photo (bot, update):
     """ Get chat photo, the biggest from the list
     """
-    pic_index   = len (update.message.photo) - 1 
-    #   Check if exceeds the 20mbs limit 
+    #   Get the last picture of the set, highest resolution
+    pic_index   = len (update.message.photo) - 1
+
     if (checkSize (update.message.photo[pic_index].file_size, update)):
         filename    = update.message.photo[pic_index].file_id + '.jpg'
         user        = update.message.from_user
         document    = bot.get_file (update.message.photo[pic_index].file_id)
-        try:
-            document.download (FILES_POOL + filename)
-        except Exception, e:
-            logger.error ("Something went wrong, backtrace: \n%s" %(e))
-            return
-        logger.info ("Got photo from %s: %s", user.first_name, filename)
-        update.message.reply_text ('Your transfer.sh link: ' + transfer (filename))
+        if (download (document, filename)):
+            logger.info ("Got photo from %s: %s", user.first_name, filename)
+            update.message.reply_text ('Your transfer.sh link: ' + transfer (filename))
 
 #   MAIN
 def main ():
@@ -187,8 +176,8 @@ def main ():
 
     #   On unknown command, put some help text
     dp.add_handler (MessageHandler (Filters.command,    cmd_unknown))
-    
-    #   We don't need text interactions, give /help instead 
+
+    #   We don't need text interactions, give /help instead
     dp.add_handler (MessageHandler (Filters.text,       cmd_help))
 
     #   Add stuff to handle
