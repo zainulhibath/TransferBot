@@ -10,6 +10,7 @@ __author__ = "jhonata.poma@gmail.com (Jhonata 'bomba' Poma)"
 import logging, re, requests, os
 from telegram.ext   import Updater, CommandHandler, MessageHandler
 from telegram.ext   import Filters, CallbackQueryHandler
+from telegram.ext.dispatcher import run_async
 
 VERSION     = '0.2'
 FILES_POOL  = '/tmp/'
@@ -67,7 +68,7 @@ def checkSize (filesize, update):
     """
     SIZE_LIMIT = 20971520
     if (filesize > SIZE_LIMIT):
-        update.message.reply_text ("Your file is too big! Size limited to 20mb by Telegram Bot API")
+        update.message.reply_text ("Your file is too big! Size limited to 20mb by Telegram Bot API", quote=True)
         logger.warn ("Rejected file, size was %s" %(filesize))
         return False
     return True
@@ -97,6 +98,7 @@ def cmd_error (bot, update, error):
     logger.warning ('Update "%s" caused error "%s"', update, error)
 
 #   ATTACHMENTS MGMT
+@run_async
 def fbk_document (bot, update):
     """ Get document, then transfer it.
     """
@@ -105,8 +107,10 @@ def fbk_document (bot, update):
         document    = bot.get_file (update.message.document.file_id)
         if (download (document, update.message.document.file_name)):
             logger.info ("Got document from %s: %s", user.first_name, update.message.document.file_name)
-            update.message.reply_text ('Your transfer.sh link: ' + transfer (update.message.document.file_name))
+            update.message.reply_text ('Your transfer.sh link: ' + transfer (update.message.document.file_name),
+                    quote=True)
 
+@run_async
 def fbk_audio (bot, update):
     """ Get audio, then transfer it.
     """
@@ -118,8 +122,10 @@ def fbk_audio (bot, update):
         document    = bot.get_file (update.message.audio.file_id)
         if (download (document, filename)):
             logger.info ("Got audio from %s: %s", user.first_name, filename)
-            update.message.reply_text ('Your transfer.sh link: ' + transfer (filename))
+            update.message.reply_text ('Your transfer.sh link: ' + transfer (filename),
+                    quote=True)
 
+@run_async
 def fbk_voice (bot, update):
     """ Get audio, then transfer it.
     """
@@ -131,8 +137,10 @@ def fbk_voice (bot, update):
         document    = bot.get_file (update.message.voice.file_id)
         if (download (document, filename)):
             logger.info ("Got voice from %s: %s", user.first_name, filename)
-            update.message.reply_text ('Your transfer.sh link: ' + transfer (filename))
+            update.message.reply_text ('Your transfer.sh link: ' + transfer (filename),
+                    quote=True)
 
+@run_async
 def fbk_video (bot, update):
     """ Get video, then transfer it.
     """
@@ -144,8 +152,10 @@ def fbk_video (bot, update):
         document    = bot.get_file (update.message.video.file_id)
         if (download (document, filename)):
             logger.info ("Got video from %s: %s", user.first_name, filename)
-            update.message.reply_text ('Your transfer.sh link: ' + transfer (filename))
+            update.message.reply_text ('Your transfer.sh link: ' + transfer (filename),
+                    quote=True)
 
+@run_async
 def fbk_photo (bot, update):
     """ Get chat photo, the biggest from the list
     """
@@ -158,7 +168,8 @@ def fbk_photo (bot, update):
         document    = bot.get_file (update.message.photo[pic_index].file_id)
         if (download (document, filename)):
             logger.info ("Got photo from %s: %s", user.first_name, filename)
-            update.message.reply_text ('Your transfer.sh link: ' + transfer (filename))
+            update.message.reply_text ('Your transfer.sh link: ' + transfer (filename),
+                    quote=True)
 
 #   MAIN
 def main ():
