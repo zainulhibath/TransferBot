@@ -14,14 +14,15 @@ from telegram.ext.dispatcher import run_async
 
 VERSION     = '0.2'
 FILES_POOL  = '/tmp/'
+CONFIG_FILE = 'conf/token.conf'
 
 logging.basicConfig (format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', level=logging.INFO)
 logger = logging.getLogger (__name__)
 
 try:
-    TOKEN   = open ('conf/token.conf', 'r').read ().replace ("\n", "")
+    TOKEN   = open (CONFIG_FILE, 'r').read ().replace ("\n", "")
 except Exception, e:
-    logger.error ("Could not find 'conf/token.conf'.")
+    logger.error ("Could not find '%s'." %(CONFIG_FILE))
     exit (1)
 
 def remove (filename):
@@ -106,7 +107,7 @@ def fbk_document (bot, update):
         user        = update.message.from_user
         document    = bot.get_file (update.message.document.file_id)
         if (download (document, update.message.document.file_name)):
-            logger.info ("Got document from %s: %s", user.first_name, update.message.document.file_name)
+            logger.info ("Got document from %s: %s", user.username, update.message.document.file_name)
             update.message.reply_text ('Your transfer.sh link: ' + transfer (update.message.document.file_name),
                     quote=True)
 
@@ -121,7 +122,7 @@ def fbk_audio (bot, update):
         user        = update.message.from_user
         document    = bot.get_file (update.message.audio.file_id)
         if (download (document, filename)):
-            logger.info ("Got audio from %s: %s", user.first_name, filename)
+            logger.info ("Got audio from %s: %s", user.username, filename)
             update.message.reply_text ('Your transfer.sh link: ' + transfer (filename),
                     quote=True)
 
@@ -136,7 +137,7 @@ def fbk_voice (bot, update):
         user        = update.message.from_user
         document    = bot.get_file (update.message.voice.file_id)
         if (download (document, filename)):
-            logger.info ("Got voice from %s: %s", user.first_name, filename)
+            logger.info ("Got voice from %s: %s", user.username, filename)
             update.message.reply_text ('Your transfer.sh link: ' + transfer (filename),
                     quote=True)
 
@@ -151,7 +152,7 @@ def fbk_video (bot, update):
         user        = update.message.from_user
         document    = bot.get_file (update.message.video.file_id)
         if (download (document, filename)):
-            logger.info ("Got video from %s: %s", user.first_name, filename)
+            logger.info ("Got video from %s: %s", user.username, filename)
             update.message.reply_text ('Your transfer.sh link: ' + transfer (filename),
                     quote=True)
 
@@ -161,13 +162,12 @@ def fbk_photo (bot, update):
     """
     #   Get the last picture of the set, highest resolution
     pic_index   = len (update.message.photo) - 1
-
     if (checkSize (update.message.photo[pic_index].file_size, update)):
         filename    = update.message.photo[pic_index].file_id + '.jpg'
         user        = update.message.from_user
         document    = bot.get_file (update.message.photo[pic_index].file_id)
         if (download (document, filename)):
-            logger.info ("Got photo from %s: %s", user.first_name, filename)
+            logger.info ("Got photo from %s: %s", user.username, filename)
             update.message.reply_text ('Your transfer.sh link: ' + transfer (filename),
                     quote=True)
 
