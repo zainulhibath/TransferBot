@@ -8,8 +8,8 @@
 __author__ = "jhonata.poma@gmail.com (Jhonata 'bomba' Poma)"
 
 import logging, re, requests, os
-from telegram.ext   import Updater, CommandHandler, MessageHandler
-from telegram.ext   import Filters, CallbackQueryHandler
+from telegram.ext import Updater, CommandHandler, MessageHandler
+from telegram.ext import Filters, CallbackQueryHandler
 from telegram.ext.dispatcher import run_async
 
 VERSION     = '0.2'
@@ -19,11 +19,12 @@ CONFIG_FILE = 'conf/token.conf'
 logging.basicConfig (format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', level=logging.INFO)
 logger = logging.getLogger (__name__)
 
-try:
-    TOKEN   = open (CONFIG_FILE, 'r').read ().replace ("\n", "")
-except Exception, e:
-    logger.error ("Could not find '%s'." %(CONFIG_FILE))
-    exit (1)
+#try:
+#   TOKEN   = open (CONFIG_FILE, 'r').read ().replace ("\n", "")
+#except Exception, e:
+#    logger.error ("Could not find '%s'." %(CONFIG_FILE))
+#    exit (1)
+TOKEN = os.environ.get('TOKEN', None)
 
 def remove (filename):
     """ Removes the file after transfer.
